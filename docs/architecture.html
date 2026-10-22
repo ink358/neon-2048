@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>霓虹2048 系统架构</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    background: #0b0f1a;
+    color: #e8ecff;
+    font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    padding: 44px 52px 52px;
+  }
+  .head { text-align: center; margin-bottom: 34px; }
+  .head h1 {
+    font-size: 34px; letter-spacing: 2px; font-weight: 800;
+    background: linear-gradient(92deg, #6ee7ff, #8b7bff 48%, #ff7ad9);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .head p { margin-top: 8px; font-size: 15px; color: #7d86ad; letter-spacing: .5px; }
+
+  .layer {
+    border: 1px solid rgba(120, 140, 255, .28);
+    background: rgba(28, 34, 60, .55);
+    border-radius: 14px;
+    padding: 16px 20px 20px;
+    margin-bottom: 14px;
+  }
+  .layer > .label {
+    display: inline-block;
+    font-size: 13px; letter-spacing: 1.5px; color: #9fb0e8;
+    border: 1px solid rgba(120, 140, 255, .35);
+    border-radius: 999px; padding: 3px 12px; margin-bottom: 14px;
+  }
+  .row { display: flex; gap: 14px; }
+
+  .box {
+    flex: 1;
+    border: 1px solid rgba(130, 150, 255, .35);
+    background: linear-gradient(180deg, rgba(58, 70, 130, .85), rgba(34, 40, 76, .85));
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .box .t { font-size: 16px; font-weight: 700; }
+  .box .d { font-size: 12.5px; color: #93a0c8; margin-top: 6px; line-height: 1.55; }
+
+  .box.accent { border-color: rgba(140, 120, 255, .6); background: linear-gradient(180deg, rgba(96, 78, 200, .9), rgba(56, 46, 130, .9)); }
+  .box.flow { border-color: rgba(110, 231, 255, .5); background: linear-gradient(180deg, rgba(38, 96, 120, .9), rgba(24, 54, 78, .9)); }
+  .box.store { border-color: rgba(255, 176, 102, .5); background: linear-gradient(180deg, rgba(120, 84, 38, .9), rgba(70, 48, 22, .9)); }
+
+  .arrow {
+    text-align: center; color: #6f7dae; font-size: 17px; line-height: 1;
+    padding: 6px 0 4px; letter-spacing: 8px;
+  }
+
+  .three { display: flex; gap: 14px; }
+  .three .box { flex: 1; }
+
+  .note {
+    margin-top: 16px; text-align: center; font-size: 12.5px; color: #7d86ad;
+    border-top: 1px dashed rgba(120, 140, 255, .22); padding-top: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>霓虹2048 · 系统架构</h1>
+    <p>单文件前端应用，零依赖、零构建，全部逻辑运行在浏览器端</p>
+  </div>
+
+  <div class="layer">
+    <span class="label">输入层</span>
+    <div class="row">
+      <div class="box"><div class="t">键盘</div><div class="d">方向键 / WASD / HJKL</div></div>
+      <div class="box"><div class="t">触摸手势</div><div class="d">棋盘滑动，阈值 24px</div></div>
+      <div class="box"><div class="t">鼠标拖拽</div><div class="d">按下起点到抬起终点</div></div>
+      <div class="box"><div class="t">界面按钮</div><div class="d">撤销 / 新游戏 / 继续</div></div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <div class="layer">
+    <span class="label">应用层 · index.html</span>
+    <div class="row">
+      <div class="box accent"><div class="t">输入归一化</div><div class="d">四类输入统一映射为 0–3 四个方向枚举</div></div>
+      <div class="box accent"><div class="t">移动引擎</div><div class="d">转置 / 翻转把四方向归约为「向左压缩合并」</div></div>
+      <div class="box accent"><div class="t">合并与计分</div><div class="d">同值相撞合并，每格一步只合并一次</div></div>
+      <div class="box accent"><div class="t">渲染层</div><div class="d">按数值写入 data-v 属性驱动色阶与动效</div></div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <div class="layer">
+    <span class="label">状态层</span>
+    <div class="three">
+      <div class="box flow"><div class="t">棋盘状态</div><div class="d">4×4 二维数组，0 表示空格</div></div>
+      <div class="box flow"><div class="t">撤销快照</div><div class="d">保留上一步的棋盘与分数</div></div>
+      <div class="box flow"><div class="t">最高分</div><div class="d">实时比较并刷新</div></div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <div class="layer">
+    <span class="label">持久化与部署</span>
+    <div class="row">
+      <div class="box store"><div class="t">localStorage</div><div class="d">进度与最高分随操作写入，刷新后可续玩</div></div>
+      <div class="box store"><div class="t">静态托管</div><div class="d">任意静态服务器托管，或直接用浏览器打开</div></div>
+    </div>
+  </div>
+
+  <div class="note">
+    无后端、无第三方库、无构建步骤：一次输入 → 归一化 → 归约合并 → 渲染 → 落盘，构成完整闭环。
+  </div>
+</body>
+</html>
